@@ -1129,6 +1129,10 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         return -1;
     }
 
+    public int getEndCommentPosition() {
+        return mVisibleComments.size();
+    }
+
     public void onItemSwipe(RecyclerView.ViewHolder viewHolder, int direction, int swipeLeftAction, int swipeRightAction) {
         if (viewHolder instanceof CommentBaseViewHolder) {
             if (direction == ItemTouchHelper.LEFT || direction == ItemTouchHelper.START) {
