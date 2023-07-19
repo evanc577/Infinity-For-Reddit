@@ -1,11 +1,13 @@
 package ml.docilealligator.infinityforreddit.activities;
 
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.webkit.URLUtil;
 import android.widget.Toast;
@@ -20,7 +22,9 @@ import org.apache.commons.io.FilenameUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -425,25 +429,32 @@ public class LinkResolverActivity extends AppCompatActivity {
     private void openInCustomTabs(Uri uri, PackageManager pm, boolean handleError) {
         ArrayList<ResolveInfo> resolveInfos = getCustomTabsPackages(pm);
         if (!resolveInfos.isEmpty()) {
-            CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
-            // add share action to menu list
-            builder.setShareState(CustomTabsIntent.SHARE_STATE_ON);
-            builder.setDefaultColorSchemeParams(
-                    new CustomTabColorSchemeParams.Builder()
-                            .setToolbarColor(mCustomThemeWrapper.getColorPrimary())
-                            .build());
-            CustomTabsIntent customTabsIntent = builder.build();
-            customTabsIntent.intent.setPackage(resolveInfos.get(0).activityInfo.packageName);
-            if (uri.getScheme() == null) {
-                uri = Uri.parse("http://" + uri);
-            }
-            try {
-                customTabsIntent.launchUrl(this, uri);
-            } catch (ActivityNotFoundException e) {
-                if (handleError) {
-                    openInBrowser(uri, pm, false);
-                } else {
-                    openInWebView(uri);
+            // Try launching in external app if possible
+            boolean launched = Build.VERSION.SDK_INT >= 30 ?
+                    launchNativeApi30( uri) :
+                    launchNativeBeforeApi30(pm, uri);
+            if (!launched) {
+                // Otherwise open in custom tab
+                CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+                // add share action to menu list
+                builder.setShareState(CustomTabsIntent.SHARE_STATE_ON);
+                builder.setDefaultColorSchemeParams(
+                        new CustomTabColorSchemeParams.Builder()
+                                .setToolbarColor(mCustomThemeWrapper.getColorPrimary())
+                                .build());
+                CustomTabsIntent customTabsIntent = builder.build();
+                customTabsIntent.intent.setPackage(resolveInfos.get(0).activityInfo.packageName);
+                if (uri.getScheme() == null) {
+                    uri = Uri.parse("http://" + uri.toString());
+                }
+                try {
+                    customTabsIntent.launchUrl(this, uri);
+                } catch (ActivityNotFoundException e) {
+                    if (handleError) {
+                        openInBrowser(uri, pm, false);
+                    } else {
+                        openInWebView(uri);
+                    }
                 }
             }
         } else {
@@ -455,9 +466,61 @@ public class LinkResolverActivity extends AppCompatActivity {
         }
     }
 
+    private boolean launchNativeApi30(Uri uri) {
+        Intent nativeAppIntent = new Intent(Intent.ACTION_VIEW, uri)
+                .addCategory(Intent.CATEGORY_BROWSABLE)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+                        Intent.FLAG_ACTIVITY_REQUIRE_NON_BROWSER);
+        try {
+            startActivity(nativeAppIntent);
+            return true;
+        } catch (ActivityNotFoundException ex) {
+            return false;
+        }
+    }
+
+    private boolean launchNativeBeforeApi30(PackageManager pm, Uri uri) {
+        // Get all Apps that resolve a generic url
+        Intent browserActivityIntent = new Intent()
+                .setAction(Intent.ACTION_VIEW)
+                .addCategory(Intent.CATEGORY_BROWSABLE)
+                .setData(Uri.fromParts("http", "", null));
+        Set<String> genericResolvedList = extractPackageNames(
+                pm.queryIntentActivities(browserActivityIntent, 0));
+
+        // Get all apps that resolve the specific Url
+        Intent specializedActivityIntent = new Intent(Intent.ACTION_VIEW, uri)
+                .addCategory(Intent.CATEGORY_BROWSABLE);
+        Set<String> resolvedSpecializedList = extractPackageNames(
+                pm.queryIntentActivities(specializedActivityIntent, 0));
+
+        // Keep only the Urls that resolve the specific, but not the generic
+        // urls.
+        resolvedSpecializedList.removeAll(genericResolvedList);
+
+        // If the list is empty, no native app handlers were found.
+        if (resolvedSpecializedList.isEmpty()) {
+            return false;
+        }
+
+        // We found native handlers. Launch the Intent.
+        specializedActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(specializedActivityIntent);
+        return true;
+    }
+
+    private HashSet<String> extractPackageNames(List<ResolveInfo> resolveInfos) {
+        var set = new HashSet<String>();
+        for (ResolveInfo info : resolveInfos) {
+            set.add(info.activityInfo.packageName);
+        }
+        return set;
+    }
+
     private void openInWebView(Uri uri) {
         Intent intent = new Intent(this, WebViewActivity.class);
         intent.setData(uri);
         startActivity(intent);
     }
 }
+
