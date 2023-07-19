@@ -87,19 +87,29 @@
 
             <TextView
                 android:id="@+id/top_score_text_view_item_post_comment"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
                 android:fontFamily="?attr/font_family"
                 android:gravity="end"
                 android:textSize="?attr/font_default"
                 app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/score_delimiter_item_post_comment"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/score_delimiter_item_post_comment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="4dp"
+                android:src="@drawable/ic_score_delimit"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@id/comment_time_text_view_item_post_comment"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/comment_time_text_view_item_post_comment"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="?attr/font_family"
                 android:gravity="end"
