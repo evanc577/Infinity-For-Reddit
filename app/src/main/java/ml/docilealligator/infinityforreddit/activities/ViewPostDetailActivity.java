@@ -17,6 +17,8 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -191,9 +193,16 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
 
                 int navBarHeight = getNavBarHeight();
                 if (navBarHeight > 0) {
-                    CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) binding.fabViewPostDetailActivity.getLayoutParams();
-                    params.bottomMargin += navBarHeight;
-                    binding.fabViewPostDetailActivity.setLayoutParams(params);
+                    {
+                        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) binding.fabViewPostDetailActivity.getLayoutParams();
+                        params.bottomMargin += navBarHeight;
+                        binding.fabViewPostDetailActivity.setLayoutParams(params);
+                    }
+                    {
+                        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) binding.fabUpViewPostDetailActivity.getLayoutParams();
+                        params.bottomMargin += navBarHeight;
+                        binding.fabUpViewPostDetailActivity.setLayoutParams(params);
+                    }
 
                     binding.searchPanelMaterialCardViewViewPostDetailActivity.setContentPadding(binding.searchPanelMaterialCardViewViewPostDetailActivity.getPaddingStart(),
                             binding.searchPanelMaterialCardViewViewPostDetailActivity.getPaddingTop(),
@@ -251,7 +260,27 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
             if (sectionsPagerAdapter != null) {
                 ViewPostDetailFragment fragment = sectionsPagerAdapter.getCurrentFragment();
                 if (fragment != null) {
+                    fragment.goToEnd();
+                    return true;
+                }
+            }
+            return false;
+        });
+
+        binding.fabUpViewPostDetailActivity.setOnClickListener(view -> {
+            if (sectionsPagerAdapter != null) {
+                ViewPostDetailFragment fragment = sectionsPagerAdapter.getCurrentFragment();
+                if (fragment != null) {
                     fragment.scrollToPreviousParentComment();
+                }
+            }
+        });
+
+        binding.fabUpViewPostDetailActivity.setOnLongClickListener(view -> {
+            if (sectionsPagerAdapter != null) {
+                ViewPostDetailFragment fragment = sectionsPagerAdapter.getCurrentFragment();
+                if (fragment != null) {
+                    fragment.goToTop();
                     return true;
                 }
             }
@@ -291,10 +320,12 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
 
     public void showFab() {
         binding.fabViewPostDetailActivity.show();
+        binding.fabUpViewPostDetailActivity.show();
     }
 
     public void hideFab() {
         binding.fabViewPostDetailActivity.hide();
+        binding.fabUpViewPostDetailActivity.hide();
     }
 
     public void showSnackBar(int resId) {
@@ -322,6 +353,7 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
         applyAppBarLayoutAndCollapsingToolbarLayoutAndToolbarTheme(binding.appbarLayoutViewPostDetailActivity,
                 binding.collapsingToolbarLayoutViewPostDetailActivity, binding.toolbarViewPostDetailActivity);
         applyFABTheme(binding.fabViewPostDetailActivity);
+        applyFABTheme(binding.fabUpViewPostDetailActivity);
         binding.searchPanelMaterialCardViewViewPostDetailActivity.setBackgroundTintList(ColorStateList.valueOf(mCustomThemeWrapper.getColorPrimary()));
         int searchPanelTextAndIconColor = mCustomThemeWrapper.getToolbarPrimaryTextAndIconColor();
         binding.searchTextInputLayoutViewPostDetailActivity.setBoxStrokeColor(searchPanelTextAndIconColor);
