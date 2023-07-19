@@ -18,6 +18,8 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -216,6 +218,11 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
                                 BaseActivity.IGNORE_MARGIN,
                                 (int) Utils.convertDpToPixel(16, ViewPostDetailActivity.this) + allInsets.right,
                                 (int) Utils.convertDpToPixel(16, ViewPostDetailActivity.this) + allInsets.bottom);
+                        setMargins(binding.fabUpViewPostDetailActivity,
+                                BaseActivity.IGNORE_MARGIN,
+                                BaseActivity.IGNORE_MARGIN,
+                                (int) Utils.convertDpToPixel(16, ViewPostDetailActivity.this) + allInsets.right,
+                                (int) Utils.convertDpToPixel(16, ViewPostDetailActivity.this) + allInsets.bottom);
 
                         return insets;
                     }
@@ -224,9 +231,16 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
 
                 int navBarHeight = getNavBarHeight();
                 if (navBarHeight > 0) {
-                    CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) binding.fabViewPostDetailActivity.getLayoutParams();
-                    params.bottomMargin += navBarHeight;
-                    binding.fabViewPostDetailActivity.setLayoutParams(params);
+                    {
+                        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) binding.fabViewPostDetailActivity.getLayoutParams();
+                        params.bottomMargin += navBarHeight;
+                        binding.fabViewPostDetailActivity.setLayoutParams(params);
+                    }
+                    {
+                        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) binding.fabUpViewPostDetailActivity.getLayoutParams();
+                        params.bottomMargin += navBarHeight;
+                        binding.fabUpViewPostDetailActivity.setLayoutParams(params);
+                    }
 
                     binding.searchPanelMaterialCardViewViewPostDetailActivity.setContentPadding(binding.searchPanelMaterialCardViewViewPostDetailActivity.getPaddingStart(),
                             binding.searchPanelMaterialCardViewViewPostDetailActivity.getPaddingTop(),
@@ -259,6 +273,7 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
         mHideFab = mPostDetailsSharedPreferences.getBoolean(SharedPreferencesUtils.HIDE_FAB_IN_POST_DETAILS, false);
         if (mHideFab) {
             binding.fabViewPostDetailActivity.setVisibility(View.GONE);
+            binding.fabUpViewPostDetailActivity.setVisibility(View.GONE);
         }
 
         mFragmentManager = getSupportFragmentManager();
@@ -277,11 +292,10 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
 
         mVolumeKeysNavigateComments = mSharedPreferences.getBoolean(SharedPreferencesUtils.VOLUME_KEYS_NAVIGATE_COMMENTS, false);
 
-        binding.fabViewPostDetailActivity.setOnClickListener(view -> {
-            scrollToNextParentComment();
-        });
-
-        binding.fabViewPostDetailActivity.setOnLongClickListener(view -> scrollToPreviousParentComment());
+        binding.fabViewPostDetailActivity.setOnClickListener(view ->scrollToNextParentComment());
+        binding.fabViewPostDetailActivity.setOnLongClickListener(view -> goToEnd());
+        binding.fabUpViewPostDetailActivity.setOnClickListener(view -> scrollToPreviousParentComment());
+        binding.fabUpViewPostDetailActivity.setOnLongClickListener(view -> goToTop());
 
         if (accountName.equals(Account.ANONYMOUS_ACCOUNT) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             binding.searchTextInputEditTextViewPostDetailActivity.setImeOptions(binding.searchTextInputEditTextViewPostDetailActivity.getImeOptions() | EditorInfoCompat.IME_FLAG_NO_PERSONALIZED_LEARNING);
@@ -291,20 +305,6 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
             mLoadingMorePostsStatus = LoadingMorePostsStatus.NOT_LOADING;
             fetchMorePosts(false);
         }
-
-        binding.fabViewPostDetailActivity.bindRequiredData(
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ? getDisplay() : null,
-                mPostDetailsSharedPreferences,
-                getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT
-        );
-
-        binding.fabViewPostDetailActivity.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                binding.fabViewPostDetailActivity.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                binding.fabViewPostDetailActivity.setCoordinates();
-            }
-        });
 
         viewPostDetailActivityViewModel = new ViewModelProvider(this, new ViewPostDetailActivityViewModel.Factory(mExecutor,
                 mHandler, mRedditDataRoomDatabase, mRetrofit)).get(ViewPostDetailActivityViewModel.class);
@@ -319,12 +319,14 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
     public void showFab() {
         if (!mHideFab) {
             binding.fabViewPostDetailActivity.show();
+            binding.fabUpViewPostDetailActivity.show();
         }
     }
 
     public void hideFab() {
         if (!mHideFab) {
             binding.fabViewPostDetailActivity.hide();
+            binding.fabUpViewPostDetailActivity.hide();
         }
     }
 
@@ -346,6 +348,30 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
             ViewPostDetailFragment fragment = mSectionsPagerAdapter.getCurrentFragment();
             if (fragment != null) {
                 fragment.scrollToPreviousParentComment();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public boolean goToTop() {
+        if (mSectionsPagerAdapter != null) {
+            ViewPostDetailFragment fragment = mSectionsPagerAdapter.getCurrentFragment();
+            if (fragment != null) {
+                fragment.goToTop();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public boolean goToEnd() {
+        if (mSectionsPagerAdapter != null) {
+            ViewPostDetailFragment fragment = mSectionsPagerAdapter.getCurrentFragment();
+            if (fragment != null) {
+                fragment.goToEnd();
                 return true;
             }
         }
@@ -384,6 +410,7 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
                 binding.collapsingToolbarLayoutViewPostDetailActivity, binding.toolbarViewPostDetailActivity);
         applyAppBarScrollFlagsIfApplicable(binding.collapsingToolbarLayoutViewPostDetailActivity);
         applyFABTheme(binding.fabViewPostDetailActivity);
+        applyFABTheme(binding.fabUpViewPostDetailActivity);
         binding.searchPanelMaterialCardViewViewPostDetailActivity.setBackgroundTintList(ColorStateList.valueOf(mCustomThemeWrapper.getColorPrimary()));
         int searchPanelTextAndIconColor = mCustomThemeWrapper.getToolbarPrimaryTextAndIconColor();
         binding.searchTextInputLayoutViewPostDetailActivity.setBoxStrokeColor(searchPanelTextAndIconColor);
@@ -815,7 +842,6 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.view_post_detail_activity, menu);
         applyMenuItemTheme(menu);
         return true;
     }
@@ -824,15 +850,6 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
             triggerBackPress();
-            return true;
-        } else if (item.getItemId() == R.id.action_reset_fab_position_view_post_detail_activity) {
-            binding.fabViewPostDetailActivity.resetCoordinates();
-            return true;
-        } else if (item.getItemId() == R.id.action_next_parent_comment_view_post_detail_activity) {
-            scrollToNextParentComment();
-            return true;
-        } else if (item.getItemId() == R.id.action_previous_parent_comment_view_post_detail_activity) {
-            scrollToPreviousParentComment();
             return true;
         }
         return false;
