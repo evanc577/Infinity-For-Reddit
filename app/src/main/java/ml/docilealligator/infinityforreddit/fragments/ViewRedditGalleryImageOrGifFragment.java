@@ -1,6 +1,8 @@
 package ml.docilealligator.infinityforreddit.fragments;
 
 import android.Manifest;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.Context;
@@ -345,9 +347,13 @@ public class ViewRedditGalleryImageOrGifFragment extends Fragment {
                 shareImage();
             }
             return true;
-        } else if (itemId == R.id.action_set_wallpaper_view_reddit_gallery_image_or_gif_fragment) {
-            //setWallpaper();
-            Toast.makeText(activity, Integer.toString(activity.getWindow().getDecorView().getSystemUiVisibility()), Toast.LENGTH_SHORT).show();
+        } else if (itemId == R.id.action_copy_clipboard_view_reddit_gallery_image_or_gif_fragment) {
+            ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText("", media.hasFallback() ? media.fallbackUrl : media.url);
+            clipboard.setPrimaryClip(clip);
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
+                Toast.makeText(getActivity(), "Copied", Toast.LENGTH_SHORT).show();
+            }
             return true;
         }
 
