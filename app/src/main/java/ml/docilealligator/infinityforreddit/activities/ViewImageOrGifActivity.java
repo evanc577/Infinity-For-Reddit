@@ -1,6 +1,9 @@
 package ml.docilealligator.infinityforreddit.activities;
 
 import android.Manifest;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -301,7 +304,7 @@ public class ViewImageOrGifActivity extends AppCompatActivity implements SetAsWa
             Utils.setTitleWithCustomFontToMenuItem(typeface, menu.getItem(i), null);
         }
         if (!isGif) {
-            menu.findItem(R.id.action_set_wallpaper_view_image_or_gif_activity).setVisible(true);
+            menu.findItem(R.id.action_copy_clipboard_view_image_or_gif_activity).setVisible(true);
         }
         return true;
     }
@@ -325,8 +328,13 @@ public class ViewImageOrGifActivity extends AppCompatActivity implements SetAsWa
             else
                 shareImage();
             return true;
-        } else if (itemId == R.id.action_set_wallpaper_view_image_or_gif_activity) {
-            setWallpaper();
+        } else if (itemId == R.id.action_copy_clipboard_view_image_or_gif_activity) {
+            ClipboardManager clipboard = (ClipboardManager) this.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText("", mImageUrl);
+            clipboard.setPrimaryClip(clip);
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
+                Toast.makeText(this.getApplicationContext(), "Copied", Toast.LENGTH_SHORT).show();
+            };
             return true;
         }
 
