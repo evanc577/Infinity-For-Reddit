@@ -404,15 +404,15 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
         }
 
         trackSelector = new DefaultTrackSelector(this);
+        var params = trackSelector.buildUponParameters();
         if (videoType == VIDEO_TYPE_NORMAL && isDataSavingMode && dataSavingModeDefaultResolution > 0) {
-            trackSelector.setParameters(
-                    trackSelector.buildUponParameters()
-                            .setMaxVideoSize(dataSavingModeDefaultResolution, dataSavingModeDefaultResolution));
+            params.setMaxVideoSize(dataSavingModeDefaultResolution, dataSavingModeDefaultResolution);
         }
+        params.setForceHighestSupportedBitrate(true);
         player = new ExoPlayer.Builder(this)
-                .setTrackSelector(trackSelector)
                 .setRenderersFactory(new DefaultRenderersFactory(this).setEnableDecoderFallback(true))
                 .build();
+        player.setTrackSelectionParameters(params.build());
 
         if (zoomable) {
             PlayerControlView playerControlView = findViewById(R.id.player_control_view_view_video_activity);
@@ -532,6 +532,7 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
                             TrackSelectionDialogBuilder builder = new TrackSelectionDialogBuilder(ViewVideoActivity.this, getString(R.string.select_video_quality), player, C.TRACK_TYPE_VIDEO);
                             builder.setShowDisableOption(true);
                             builder.setAllowAdaptiveSelections(false);
+                            builder.setTrackFormatComparator((f1, f2) -> Integer.compare(f2.bitrate, f1.bitrate));
                             Dialog dialog = builder.setTheme(R.style.MaterialAlertDialogTheme).build();
                             dialog.show();
                             if (dialog instanceof AlertDialog) {
