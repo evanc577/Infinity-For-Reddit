@@ -1,6 +1,8 @@
 package ml.docilealligator.infinityforreddit.fragments;
 
 import android.Manifest;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -191,8 +193,13 @@ public class ViewImgurImageFragment extends Fragment {
         } else if (itemId == R.id.action_share_view_imgur_image_fragment) {
             shareImage();
             return true;
-        } else if (itemId == R.id.action_set_wallpaper_view_imgur_image_fragment) {
-            setWallpaper();
+        } else if (itemId == R.id.action_copy_clipboard_view_imgur_image_fragment) {
+            ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText("", imgurMedia.getLink());
+            clipboard.setPrimaryClip(clip);
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
+                Toast.makeText(getActivity(), "Copied", Toast.LENGTH_SHORT).show();
+            }
             return true;
         }
 
