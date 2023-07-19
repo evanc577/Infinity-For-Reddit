@@ -818,6 +818,10 @@ public class ViewPostDetailFragment extends Fragment implements FragmentCommunic
         }
     }
 
+    public void goToEnd() {
+        ((LinearLayoutManagerBugFixed) mCommentsRecyclerView.getLayoutManager()).scrollToPositionWithOffset(mCommentsAdapter.getEndCommentPosition(), 0);
+    }
+
     public void saveComment(int position, boolean isSaved) {
         if (mCommentsAdapter != null) {
             mCommentsAdapter.setSaveComment(position, isSaved);
