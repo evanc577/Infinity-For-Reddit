@@ -495,6 +495,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
                     String topScoreText = "";
                     if (comment.isScoreHidden()) {
                         commentText = mActivity.getString(R.string.hidden);
+                        topScoreText = mActivity.getString(R.string.hidden);
                     } else {
                         commentText = Utils.getNVotes(mShowAbsoluteNumberOfVotes,
                                 comment.getScore() + comment.getVoteType());
@@ -1204,6 +1205,8 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         TextView authorFlairTextView;
         TextView commentTimeTextView;
         TextView topScoreTextView;
+        @BindView(R.id.score_delimiter_item_post_comment)
+        ImageView scoreDelimiterImageView;
         RecyclerView commentMarkdownView;
         TextView editedTextView;
         ConstraintLayout bottomConstraintLayout;
@@ -1241,7 +1244,8 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
                          TextView expandButton,
                          MaterialButton replyButton,
                          CommentIndentationView commentIndentationView,
-                         View commentDivider) {
+                         View commentDivider,
+                         ImageView scoreDelimiterImageView) {
             this.linearLayout = linearLayout;
             this.authorIconImageView = authorIconImageView;
             this.authorTextView = authorTextView;
@@ -1261,6 +1265,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
             this.replyButton = replyButton;
             this.commentIndentationView = commentIndentationView;
             this.commentDivider = commentDivider;
+            this.scoreDelimiterImageView = scoreDelimiterImageView;
 
             if (mVoteButtonsOnTheRight) {
                 ConstraintSet constraintSet = new ConstraintSet();
@@ -1356,6 +1361,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
             expandButton.setTextColor(mCommentIconAndInfoColor);
             saveButton.setIconTint(ColorStateList.valueOf(mCommentIconAndInfoColor));
             replyButton.setIconTint(ColorStateList.valueOf(mCommentIconAndInfoColor));
+            this.scoreDelimiterImageView.setColorFilter(mSecondaryTextColor);
 
             authorFlairTextView.setOnClickListener(view -> authorTextView.performClick());
 
@@ -1806,7 +1812,8 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
                     binding.expandButtonItemPostComment,
                     binding.replyButtonItemPostComment,
                     binding.verticalBlockIndentationItemComment,
-                    binding.dividerItemComment);
+                    binding.dividerItemComment,
+                    binding.scoreDelimiterItemPostComment);
         }
     }
 
@@ -1843,6 +1850,8 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         TextView scoreTextView;
         @BindView(R.id.time_text_view_item_comment_fully_collapsed)
         TextView commentTimeTextView;
+        @BindView(R.id.score_delimiter_item_post_comment)
+        ImageView scoreDelimiterImageView;
         @BindView(R.id.divider_item_comment_fully_collapsed)
         View commentDivider;
 
@@ -1861,6 +1870,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
             childCountTextView.setTextColor(mSecondaryTextColor);
             scoreTextView.setTextColor(mSecondaryTextColor);
             commentTimeTextView.setTextColor(mSecondaryTextColor);
+            scoreDelimiterImageView.setColorFilter(mSecondaryTextColor);
 
             if (mShowCommentDivider) {
                 if (mDividerType == DIVIDER_NORMAL) {
