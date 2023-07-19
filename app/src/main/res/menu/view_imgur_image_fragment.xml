@@ -16,8 +16,9 @@
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/action_set_wallpaper_view_imgur_image_fragment"
+        android:id="@+id/action_copy_clipboard_view_imgur_image_fragment"
         android:orderInCategory="3"
-        android:title="@string/action_set_wallpaper"
-        app:showAsAction="never" />
+        android:title="Copy link"
+        android:icon="@drawable/ic_copy_white_24dp"
+        app:showAsAction="ifRoom" />
 </menu>
