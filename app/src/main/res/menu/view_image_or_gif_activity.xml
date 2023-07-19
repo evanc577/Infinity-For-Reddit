@@ -16,9 +16,9 @@
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/action_set_wallpaper_view_image_or_gif_activity"
+        android:id="@+id/action_copy_clipboard_view_image_or_gif_activity"
         android:orderInCategory="3"
-        android:title="@string/action_set_wallpaper"
-        android:visible="false"
-        app:showAsAction="never" />
+        android:title="Copy link"
+        android:icon="@drawable/ic_copy_white_24dp"
+        app:showAsAction="ifRoom" />
 </menu>
