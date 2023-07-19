@@ -480,10 +480,12 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
                     ((CommentBaseViewHolder) holder).bottomConstraintLayout.getLayoutParams().height = 0;
                     if (!mHideTheNumberOfVotes) {
                         ((CommentBaseViewHolder) holder).topScoreTextView.setVisibility(View.VISIBLE);
+                        ((CommentBaseViewHolder) holder).scoreDelimiterImageView.setVisibility(View.VISIBLE);
                     }
                 } else {
                     ((CommentBaseViewHolder) holder).bottomConstraintLayout.getLayoutParams().height = LinearLayout.LayoutParams.WRAP_CONTENT;
                     ((CommentBaseViewHolder) holder).topScoreTextView.setVisibility(View.GONE);
+                    ((CommentBaseViewHolder) holder).scoreDelimiterImageView.setVisibility(View.GONE);
                 }
 
                 mEmoteCloseBracketInlineProcessor.setMediaMetadataMap(comment.getMediaMetadataMap());
@@ -497,6 +499,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
                     String topScoreText = "";
                     if (comment.isScoreHidden()) {
                         commentText = mActivity.getString(R.string.hidden);
+                        topScoreText = mActivity.getString(R.string.hidden);
                     } else {
                         commentText = Utils.getNVotes(mShowAbsoluteNumberOfVotes,
                                 comment.getScore() + comment.getVoteType());
@@ -1226,6 +1229,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         TextView authorFlairTextView;
         TextView commentTimeTextView;
         TextView topScoreTextView;
+        ImageView scoreDelimiterImageView;
         RecyclerView commentMarkdownView;
         TextView editedTextView;
         ConstraintLayout bottomConstraintLayout;
@@ -1263,7 +1267,8 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
                          TextView expandButton,
                          MaterialButton replyButton,
                          CommentIndentationView commentIndentationView,
-                         View commentDivider) {
+                         View commentDivider,
+                         ImageView scoreDelimiterImageView) {
             this.linearLayout = linearLayout;
             this.authorIconImageView = authorIconImageView;
             this.authorTextView = authorTextView;
@@ -1283,6 +1288,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
             this.replyButton = replyButton;
             this.commentIndentationView = commentIndentationView;
             this.commentDivider = commentDivider;
+            this.scoreDelimiterImageView = scoreDelimiterImageView;
 
             if (mVoteButtonsOnTheRight) {
                 ConstraintSet constraintSet = new ConstraintSet();
@@ -1378,6 +1384,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
             expandButton.setTextColor(mCommentIconAndInfoColor);
             saveButton.setIconTint(ColorStateList.valueOf(mCommentIconAndInfoColor));
             replyButton.setIconTint(ColorStateList.valueOf(mCommentIconAndInfoColor));
+            this.scoreDelimiterImageView.setColorFilter(mSecondaryTextColor);
 
             authorFlairTextView.setOnClickListener(view -> authorTextView.performClick());
 
@@ -1791,12 +1798,14 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
             if (bottomConstraintLayout.getLayoutParams().height == 0) {
                 bottomConstraintLayout.getLayoutParams().height = LinearLayout.LayoutParams.WRAP_CONTENT;
                 topScoreTextView.setVisibility(View.GONE);
+                scoreDelimiterImageView.setVisibility(View.GONE);
                 mFragment.delayTransition();
             } else {
                 mFragment.delayTransition();
                 bottomConstraintLayout.getLayoutParams().height = 0;
                 if (!mHideTheNumberOfVotes) {
                     topScoreTextView.setVisibility(View.VISIBLE);
+                    scoreDelimiterImageView.setVisibility(View.VISIBLE);
                 }
             }
             return true;
@@ -1827,7 +1836,8 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
                     binding.expandButtonItemPostComment,
                     binding.replyButtonItemPostComment,
                     binding.verticalBlockIndentationItemComment,
-                    binding.dividerItemComment);
+                    binding.dividerItemComment,
+                    binding.scoreDelimiterItemPostComment);
         }
     }
 
@@ -1849,6 +1859,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
             binding.childCountTextViewItemCommentFullyCollapsed.setTextColor(mSecondaryTextColor);
             binding.scoreTextViewItemCommentFullyCollapsed.setTextColor(mSecondaryTextColor);
             binding.timeTextViewItemCommentFullyCollapsed.setTextColor(mSecondaryTextColor);
+            binding.scoreDelimiterItemPostComment.setColorFilter(mSecondaryTextColor);
 
             if (mShowCommentDivider) {
                 if (mDividerType == DIVIDER_NORMAL) {
