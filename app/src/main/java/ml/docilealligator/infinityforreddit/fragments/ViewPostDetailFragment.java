@@ -1887,9 +1887,7 @@ public class ViewPostDetailFragment extends Fragment implements FragmentCommunic
             if (nextParentPosition < 0) {
                 return;
             }
-            mSmoothScroller.setTargetPosition(mCommentsRecyclerView == null && !isSingleCommentThreadMode ? nextParentPosition + 1 : nextParentPosition);
-            mIsSmoothScrolling = true;
-            chooseYourView.getLayoutManager().startSmoothScroll(mSmoothScroller);
+            ((LinearLayoutManager)chooseYourView.getLayoutManager()).scrollToPositionWithOffset(mCommentsRecyclerView == null && !isSingleCommentThreadMode ? nextParentPosition + 1 : nextParentPosition, 0);
         }
     }
 
@@ -1902,9 +1900,7 @@ public class ViewPostDetailFragment extends Fragment implements FragmentCommunic
             if (previousParentPosition < 0) {
                 return;
             }
-            mSmoothScroller.setTargetPosition(mCommentsRecyclerView == null && !isSingleCommentThreadMode ? previousParentPosition + 1 : previousParentPosition);
-            mIsSmoothScrolling = true;
-            chooseYourView.getLayoutManager().startSmoothScroll(mSmoothScroller);
+            ((LinearLayoutManager)chooseYourView.getLayoutManager()).scrollToPositionWithOffset(mCommentsRecyclerView == null && !isSingleCommentThreadMode ? previousParentPosition + 1 : previousParentPosition, 0);
         }
     }
 
