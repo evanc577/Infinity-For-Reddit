@@ -224,24 +224,12 @@ public final class Utils {
 
         if (diff < MINUTE_MILLIS) {
             return context.getString(R.string.elapsed_time_just_now);
-        } else if (diff < 2 * MINUTE_MILLIS) {
-            return context.getString(R.string.elapsed_time_a_minute_ago);
-        } else if (diff < 50 * MINUTE_MILLIS) {
+        } else if (diff < HOUR_MILLIS) {
             return context.getString(R.string.elapsed_time_minutes_ago, diff / MINUTE_MILLIS);
-        } else if (diff < 120 * MINUTE_MILLIS) {
-            return context.getString(R.string.elapsed_time_an_hour_ago);
-        } else if (diff < 24 * HOUR_MILLIS) {
+        } else if (diff < DAY_MILLIS) {
             return context.getString(R.string.elapsed_time_hours_ago, diff / HOUR_MILLIS);
-        } else if (diff < 48 * HOUR_MILLIS) {
-            return context.getString(R.string.elapsed_time_yesterday);
-        } else if (diff < MONTH_MILLIS) {
-            return context.getString(R.string.elapsed_time_days_ago, diff / DAY_MILLIS);
-        } else if (diff < 2 * MONTH_MILLIS) {
-            return context.getString(R.string.elapsed_time_a_month_ago);
         } else if (diff < YEAR_MILLIS) {
-            return context.getString(R.string.elapsed_time_months_ago, diff / MONTH_MILLIS);
-        } else if (diff < 2 * YEAR_MILLIS) {
-            return context.getString(R.string.elapsed_time_a_year_ago);
+            return context.getString(R.string.elapsed_time_days_ago, diff / DAY_MILLIS);
         } else {
             return context.getString(R.string.elapsed_time_years_ago, diff / YEAR_MILLIS);
         }
