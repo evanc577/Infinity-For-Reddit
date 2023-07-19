@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -113,6 +114,8 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
     ViewPager2 viewPager2;
     @BindView(R.id.fab_view_post_detail_activity)
     FloatingActionButton fab;
+    @BindView(R.id.fab_up_view_post_detail_activity)
+    FloatingActionButton fab_up;
     @BindView(R.id.search_panel_material_card_view_view_post_detail_activity)
     MaterialCardView searchPanelMaterialCardView;
     @BindView(R.id.search_text_input_layout_view_post_detail_activity)
@@ -218,9 +221,16 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
 
                 int navBarHeight = getNavBarHeight();
                 if (navBarHeight > 0) {
-                    CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) fab.getLayoutParams();
-                    params.bottomMargin += navBarHeight;
-                    fab.setLayoutParams(params);
+                    {
+                        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) fab.getLayoutParams();
+                        params.bottomMargin += navBarHeight;
+                        fab.setLayoutParams(params);
+                    }
+                    {
+                        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) fab_up.getLayoutParams();
+                        params.bottomMargin += navBarHeight;
+                        fab_up.setLayoutParams(params);
+                    }
 
                     searchPanelMaterialCardView.setContentPadding(searchPanelMaterialCardView.getPaddingStart(),
                             searchPanelMaterialCardView.getPaddingTop(),
@@ -281,7 +291,27 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
             if (sectionsPagerAdapter != null) {
                 ViewPostDetailFragment fragment = sectionsPagerAdapter.getCurrentFragment();
                 if (fragment != null) {
+                    fragment.goToEnd();
+                    return true;
+                }
+            }
+            return false;
+        });
+
+        fab_up.setOnClickListener(view -> {
+            if (sectionsPagerAdapter != null) {
+                ViewPostDetailFragment fragment = sectionsPagerAdapter.getCurrentFragment();
+                if (fragment != null) {
                     fragment.scrollToPreviousParentComment();
+                }
+            }
+        });
+
+        fab_up.setOnLongClickListener(view -> {
+            if (sectionsPagerAdapter != null) {
+                ViewPostDetailFragment fragment = sectionsPagerAdapter.getCurrentFragment();
+                if (fragment != null) {
+                    fragment.goToTop();
                     return true;
                 }
             }
@@ -308,10 +338,12 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
 
     public void showFab() {
         fab.show();
+        fab_up.show();
     }
 
     public void hideFab() {
         fab.hide();
+        fab_up.hide();
     }
 
     public void showSnackBar(int resId) {
@@ -333,6 +365,7 @@ public class ViewPostDetailActivity extends BaseActivity implements SortTypeSele
         mCoordinatorLayout.setBackgroundColor(mCustomThemeWrapper.getBackgroundColor());
         applyAppBarLayoutAndCollapsingToolbarLayoutAndToolbarTheme(mAppBarLayout, mCollapsingToolbarLayout, mToolbar);
         applyFABTheme(fab);
+        applyFABTheme(fab_up);
         searchPanelMaterialCardView.setBackgroundTintList(ColorStateList.valueOf(mCustomThemeWrapper.getColorPrimary()));
         int searchPanelTextAndIconColor = mCustomThemeWrapper.getToolbarPrimaryTextAndIconColor();
         searchTextInputLayout.setBoxStrokeColor(searchPanelTextAndIconColor);
