@@ -60,9 +60,16 @@
                 android:fontFamily="?attr/font_family"
                 android:paddingStart="8dp"
                 android:paddingTop="12dp"
-                android:paddingEnd="8dp"
                 android:paddingBottom="12dp"
                 android:textSize="?attr/font_default" />
+
+            <ImageView
+                android:id="@+id/score_delimiter_item_post_comment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:paddingHorizontal="4dp"
+                android:src="@drawable/ic_score_delimit" />
 
             <TextView
                 android:id="@+id/time_text_view_item_comment_fully_collapsed"
@@ -70,7 +77,6 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical|end"
                 android:fontFamily="?attr/font_family"
-                android:paddingStart="8dp"
                 android:paddingTop="12dp"
                 android:paddingEnd="16dp"
                 android:paddingBottom="12dp"
