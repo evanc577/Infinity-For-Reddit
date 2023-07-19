@@ -145,7 +145,7 @@
     <string name="trending">Trending</string>
     <string name="upvoted">Upvoted</string>
     <string name="downvoted">Downvoted</string>
-    <string name="hidden">Hidden</string>
+    <string name="hidden">\?</string>
     <string name="saved">Saved</string>
     <string name="gilded">Gilded</string>
     <string name="settings">Settings</string>
@@ -1063,7 +1063,7 @@
 
     <string name="load_video_in_redgifs">Try loading the video on Redgifs</string>
 
-    <string name="top_score">%1$s pts</string>
+    <string name="top_score">%1$s</string>
 
     <string name="login_activity_2fa_prompt">If you have 2-factor authentication enabled, kindly type your password like the following: &lt;password&gt;:&lt;2FA code&gt;.\nExample: yourpass:123456</string>
 
