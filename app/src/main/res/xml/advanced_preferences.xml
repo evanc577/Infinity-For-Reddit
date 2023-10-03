@@ -3,6 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <ml.docilealligator.infinityforreddit.customviews.CustomFontPreference
+        app:title="Set API key / username">
+        <intent android:action="ml.docilealligator.infinityforreddit.activities.APISetupActivity">
+            <extra
+                android:name="force"
+                android:value="true" />
+        </intent>
+    </ml.docilealligator.infinityforreddit.customviews.CustomFontPreference>
+
+    <ml.docilealligator.infinityforreddit.customviews.CustomFontPreference
         app:key="delete_all_subreddits_data_in_database"
         app:title="@string/settings_delete_all_subreddits_data_in_database_title" />
 
