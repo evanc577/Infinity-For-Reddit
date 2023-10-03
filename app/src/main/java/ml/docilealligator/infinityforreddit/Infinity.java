@@ -87,6 +87,7 @@ public class Infinity extends Application implements LifecycleObserver {
     @Override
     public void onCreate() {
         super.onCreate();
+        infinity = this;
 
         mAppComponent = DaggerAppComponent.factory()
                 .create(this);
@@ -249,5 +250,10 @@ public class Infinity extends Application implements LifecycleObserver {
     public void onChangeAppLockEvent(ChangeAppLockEvent changeAppLockEvent) {
         appLock = changeAppLockEvent.appLock;
         appLockTimeout = changeAppLockEvent.appLockTimeout;
+    }
+
+    static Infinity infinity;
+    public static Infinity getInstance() {
+        return infinity;
     }
 }
