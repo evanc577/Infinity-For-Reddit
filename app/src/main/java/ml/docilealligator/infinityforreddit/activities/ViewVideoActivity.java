@@ -597,7 +597,7 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
 
         // Produces DataSource instances through which media data is loaded.
         dataSourceFactory = new CacheDataSource.Factory().setCache(mSimpleCache)
-                .setUpstreamDataSourceFactory(new DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true).setUserAgent(APIUtils.USER_AGENT));
+                .setUpstreamDataSourceFactory(new DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true).setUserAgent(APIUtils.getUserAgent()));
         if (videoType == VIDEO_TYPE_STREAMABLE) {
             if (savedInstanceState != null) {
                 videoDownloadUrl = savedInstanceState.getString(VIDEO_DOWNLOAD_URL_STATE);
