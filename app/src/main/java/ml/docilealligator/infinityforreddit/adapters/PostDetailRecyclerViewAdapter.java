@@ -722,7 +722,7 @@ public class PostDetailRecyclerViewAdapter extends RecyclerView.Adapter<Recycler
                             mRedgifsRetrofit.create(RedgifsAPI.class)
                                     .getRedgifsData(APIUtils.getRedgifsOAuthHeader(
                                             mCurrentAccountSharedPreferences.getString(SharedPreferencesUtils.REDGIFS_ACCESS_TOKEN, "")),
-                                            mPost.getRedgifsId(), APIUtils.USER_AGENT);
+                                            mPost.getRedgifsId(), APIUtils.getUserAgent());
                     FetchRedgifsVideoLinks.fetchRedgifsVideoLinksInRecyclerViewAdapter(mExecutor, new Handler(),
                             ((PostDetailBaseVideoAutoplayViewHolder) holder).fetchRedgifsOrStreamableVideoCall,
                             new FetchVideoLinkListener() {
