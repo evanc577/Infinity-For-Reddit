@@ -782,7 +782,7 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
 
                     if (post.isRedgifs() && !post.isLoadRedgifsOrStreamableVideoSuccess()) {
                         ((PostBaseVideoAutoplayViewHolder) holder).fetchRedgifsOrStreamableVideoCall =
-                                mRedgifsRetrofit.create(RedgifsAPI.class).getRedgifsData(APIUtils.getRedgifsOAuthHeader(mCurrentAccountSharedPreferences.getString(SharedPreferencesUtils.REDGIFS_ACCESS_TOKEN, "")), post.getRedgifsId(), APIUtils.USER_AGENT);
+                                mRedgifsRetrofit.create(RedgifsAPI.class).getRedgifsData(APIUtils.getRedgifsOAuthHeader(mCurrentAccountSharedPreferences.getString(SharedPreferencesUtils.REDGIFS_ACCESS_TOKEN, "")), post.getRedgifsId(), APIUtils.getUserAgent());
                         FetchRedgifsVideoLinks.fetchRedgifsVideoLinksInRecyclerViewAdapter(mExecutor, new Handler(),
                                 ((PostBaseVideoAutoplayViewHolder) holder).fetchRedgifsOrStreamableVideoCall,
                                 new FetchRedgifsVideoLinks.FetchRedgifsVideoLinksListener() {
@@ -959,7 +959,7 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                                 mRedgifsRetrofit.create(RedgifsAPI.class).getRedgifsData(
                                         APIUtils.getRedgifsOAuthHeader(
                                                 mCurrentAccountSharedPreferences.getString(SharedPreferencesUtils.REDGIFS_ACCESS_TOKEN, "")),
-                                        post.getRedgifsId(), APIUtils.USER_AGENT);
+                                        post.getRedgifsId(), APIUtils.getUserAgent());
                         FetchRedgifsVideoLinks.fetchRedgifsVideoLinksInRecyclerViewAdapter(mExecutor, new Handler(),
                                 ((PostCard2BaseVideoAutoplayViewHolder) holder).fetchRedgifsOrStreamableVideoCall,
                                 new FetchRedgifsVideoLinks.FetchRedgifsVideoLinksListener() {
@@ -1771,7 +1771,7 @@ public class HistoryPostRecyclerViewAdapter extends PagingDataAdapter<Post, Recy
                                 mRedgifsRetrofit.create(RedgifsAPI.class).getRedgifsData(
                                         APIUtils.getRedgifsOAuthHeader(mCurrentAccountSharedPreferences
                                                 .getString(SharedPreferencesUtils.REDGIFS_ACCESS_TOKEN, "")),
-                                        post.getRedgifsId(), APIUtils.USER_AGENT);
+                                        post.getRedgifsId(), APIUtils.getUserAgent());
                         FetchRedgifsVideoLinks.fetchRedgifsVideoLinksInRecyclerViewAdapter(mExecutor, new Handler(),
                                 ((PostMaterial3CardBaseVideoAutoplayViewHolder) holder).fetchRedgifsOrStreamableVideoCall,
                                 new FetchRedgifsVideoLinks.FetchRedgifsVideoLinksListener() {

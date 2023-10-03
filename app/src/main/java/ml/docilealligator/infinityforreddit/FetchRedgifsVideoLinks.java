@@ -31,7 +31,7 @@ public class FetchRedgifsVideoLinks {
         executor.execute(() -> {
             try {
                 Response<String> response = redgifsRetrofit.create(RedgifsAPI.class).getRedgifsData(APIUtils.getRedgifsOAuthHeader(currentAccountSharedPreferences.getString(SharedPreferencesUtils.REDGIFS_ACCESS_TOKEN, "")),
-                         redgifsId, APIUtils.USER_AGENT).execute();
+                         redgifsId, APIUtils.getUserAgent()).execute();
                 if (response.isSuccessful()) {
                     parseRedgifsVideoLinks(handler, response.body(), fetchRedgifsVideoLinksListener);
                 } else {
