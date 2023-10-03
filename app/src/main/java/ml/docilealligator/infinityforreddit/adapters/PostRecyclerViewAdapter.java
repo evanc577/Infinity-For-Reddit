@@ -825,7 +825,7 @@ public class PostRecyclerViewAdapter extends PagingDataAdapter<Post, RecyclerVie
                                 mRedgifsRetrofit.create(RedgifsAPI.class)
                                         .getRedgifsData(APIUtils.getRedgifsOAuthHeader(
                                                 mCurrentAccountSharedPreferences.getString(SharedPreferencesUtils.REDGIFS_ACCESS_TOKEN, "")),
-                                                post.getRedgifsId(), APIUtils.USER_AGENT);
+                                                post.getRedgifsId(), APIUtils.getUserAgent());
                         FetchRedgifsVideoLinks.fetchRedgifsVideoLinksInRecyclerViewAdapter(mExecutor, new Handler(),
                                 ((PostBaseVideoAutoplayViewHolder) holder).fetchRedgifsOrStreamableVideoCall,
                                 new FetchRedgifsVideoLinks.FetchRedgifsVideoLinksListener() {
@@ -1005,7 +1005,7 @@ public class PostRecyclerViewAdapter extends PagingDataAdapter<Post, RecyclerVie
                                 mRedgifsRetrofit.create(RedgifsAPI.class).getRedgifsData(
                                         APIUtils.getRedgifsOAuthHeader(mCurrentAccountSharedPreferences
                                                 .getString(SharedPreferencesUtils.REDGIFS_ACCESS_TOKEN, "")),
-                                        post.getRedgifsId(), APIUtils.USER_AGENT);
+                                        post.getRedgifsId(), APIUtils.getUserAgent());
                         FetchRedgifsVideoLinks.fetchRedgifsVideoLinksInRecyclerViewAdapter(mExecutor, new Handler(),
                                 ((PostCard2BaseVideoAutoplayViewHolder) holder).fetchRedgifsOrStreamableVideoCall,
                                 new FetchRedgifsVideoLinks.FetchRedgifsVideoLinksListener() {
@@ -1856,7 +1856,7 @@ public class PostRecyclerViewAdapter extends PagingDataAdapter<Post, RecyclerVie
                                 mRedgifsRetrofit.create(RedgifsAPI.class).getRedgifsData(
                                         APIUtils.getRedgifsOAuthHeader(mCurrentAccountSharedPreferences
                                                 .getString(SharedPreferencesUtils.REDGIFS_ACCESS_TOKEN, "")),
-                                        post.getRedgifsId(), APIUtils.USER_AGENT);
+                                        post.getRedgifsId(), APIUtils.getUserAgent());
                         FetchRedgifsVideoLinks.fetchRedgifsVideoLinksInRecyclerViewAdapter(mExecutor, new Handler(),
                                 ((PostMaterial3CardBaseVideoAutoplayViewHolder) holder).fetchRedgifsOrStreamableVideoCall,
                                 new FetchRedgifsVideoLinks.FetchRedgifsVideoLinksListener() {
