@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -36,8 +37,10 @@ import ml.docilealligator.infinityforreddit.asynctasks.DeleteAllThemes;
 import ml.docilealligator.infinityforreddit.asynctasks.DeleteAllUsers;
 import ml.docilealligator.infinityforreddit.asynctasks.RestoreSettings;
 import ml.docilealligator.infinityforreddit.customviews.CustomFontPreferenceFragmentCompat;
+import ml.docilealligator.infinityforreddit.events.ChangePostFeedMaxResolutionEvent;
 import ml.docilealligator.infinityforreddit.events.RecreateActivityEvent;
 import ml.docilealligator.infinityforreddit.readpost.ReadPostDao;
+import ml.docilealligator.infinityforreddit.utils.APIUtils;
 import ml.docilealligator.infinityforreddit.utils.SharedPreferencesUtils;
 
 /**
@@ -95,6 +98,8 @@ public class AdvancedPreferenceFragment extends CustomFontPreferenceFragmentComp
 
         ((Infinity) activity.getApplication()).getAppComponent().inject(this);
 
+        EditTextPreference setApiKeyPreference = findPreference(SharedPreferencesUtils.SET_API_KEY);
+        EditTextPreference setApiUsernamePreference = findPreference(SharedPreferencesUtils.SET_API_USERNAME);
         Preference deleteSubredditsPreference = findPreference(SharedPreferencesUtils.DELETE_ALL_SUBREDDITS_DATA_IN_DATABASE);
         Preference deleteUsersPreference = findPreference(SharedPreferencesUtils.DELETE_ALL_USERS_DATA_IN_DATABASE);
         Preference deleteSortTypePreference = findPreference(SharedPreferencesUtils.DELETE_ALL_SORT_TYPE_DATA_IN_DATABASE);
@@ -108,6 +113,20 @@ public class AdvancedPreferenceFragment extends CustomFontPreferenceFragmentComp
         Preference restoreSettingsPreference = findPreference(SharedPreferencesUtils.RESTORE_SETTINGS);
 
         handler = new Handler(Looper.getMainLooper());
+
+        if (setApiKeyPreference != null) {
+            setApiKeyPreference.setOnPreferenceChangeListener((preference, newValue) -> {
+                APIUtils.setClientId((String)newValue);
+                return true;
+            });
+        }
+
+        if (setApiUsernamePreference != null) {
+            setApiUsernamePreference.setOnPreferenceChangeListener((preference, newValue) -> {
+                APIUtils.setUserAgent((String)newValue);
+                return true;
+            });
+        }
 
         if (deleteSubredditsPreference != null) {
             deleteSubredditsPreference.setOnPreferenceClickListener(preference -> {

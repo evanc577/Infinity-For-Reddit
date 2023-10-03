@@ -153,7 +153,7 @@ public class ViewImgurVideoFragment extends Fragment {
                 .build();
         binding.getRoot().setPlayer(player);
         dataSourceFactory = new CacheDataSource.Factory().setCache(mSimpleCache)
-                .setUpstreamDataSourceFactory(new DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true).setUserAgent(APIUtils.USER_AGENT));
+                .setUpstreamDataSourceFactory(new DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true).setUserAgent(APIUtils.getUserAgent()));
         player.prepare();
         player.setMediaSource(new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(imgurMedia.getLink())));
 
