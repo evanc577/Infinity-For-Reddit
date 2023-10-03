@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <ml.docilealligator.infinityforreddit.customviews.preference.CustomFontEditTextPreference
+        app:defaultValue=""
+        app:key="set_api_key"
+        app:title="Set API key"
+        app:useSimpleSummaryProvider="false" />
+
+    <ml.docilealligator.infinityforreddit.customviews.preference.CustomFontEditTextPreference
+        app:defaultValue=""
+        app:key="set_api_username"
+        app:title="Set API username"
+        app:useSimpleSummaryProvider="false" />
+
     <ml.docilealligator.infinityforreddit.customviews.preference.CustomFontPreference
         app:key="delete_all_subreddits_data_in_database"
         app:title="@string/settings_delete_all_subreddits_data_in_database_title" />
