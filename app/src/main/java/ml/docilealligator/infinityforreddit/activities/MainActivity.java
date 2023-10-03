@@ -872,7 +872,7 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
             }
         });
         navigationWrapper.floatingActionButton.setOnLongClickListener(view -> {
-            FABMoreOptionsBottomSheetFragment fabMoreOptionsBottomSheetFragment= new FABMoreOptionsBottomSheetFragment();
+            FABMoreOptionsBottomSheetFragment fabMoreOptionsBottomSheetFragment = new FABMoreOptionsBottomSheetFragment();
             Bundle bundle = new Bundle();
             bundle.putBoolean(FABMoreOptionsBottomSheetFragment.EXTRA_ANONYMOUS_MODE, accountName.equals(Account.ANONYMOUS_ACCOUNT));
             fabMoreOptionsBottomSheetFragment.setArguments(bundle);
