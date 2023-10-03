@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -95,6 +96,8 @@ public class AdvancedPreferenceFragment extends CustomFontPreferenceFragmentComp
 
         ((Infinity) activity.getApplication()).getAppComponent().inject(this);
 
+        EditTextPreference setApiKeyPreference = findPreference(SharedPreferencesUtils.SET_API_KEY);
+        EditTextPreference setApiUsernamePreference = findPreference(SharedPreferencesUtils.SET_API_USERNAME);
         Preference deleteSubredditsPreference = findPreference(SharedPreferencesUtils.DELETE_ALL_SUBREDDITS_DATA_IN_DATABASE);
         Preference deleteUsersPreference = findPreference(SharedPreferencesUtils.DELETE_ALL_USERS_DATA_IN_DATABASE);
         Preference deleteSortTypePreference = findPreference(SharedPreferencesUtils.DELETE_ALL_SORT_TYPE_DATA_IN_DATABASE);
