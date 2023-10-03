@@ -474,7 +474,8 @@ public class SharedPreferencesUtils {
     public static final String HIDE_THE_NUMBER_OF_AWARDS_LEGACY = "hide_the_number_of_awards";
     public static final String HIDE_COMMENT_AWARDS_LEGACY = "hide_comment_awards";
     public static final String IMMERSIVE_INTERFACE_IGNORE_NAV_BAR_KEY_LEGACY = "immersive_interface_ignore_nav_bar";
-
     //Current account
     public static final String APPLICATION_ONLY_ACCESS_TOKEN_LEGACY = "app_only_access_token";
+    public static final String SET_API_KEY = "set_api_key";
+    public static final String SET_API_USERNAME = "set_api_username";
 }
