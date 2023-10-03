@@ -395,4 +395,6 @@ public class SharedPreferencesUtils {
     public static final String DO_NOT_SHOW_REDDIT_API_INFO_AGAIN_LEGACY = "do_not_show_reddit_api_info_again";
     public static final String HIDE_THE_NUMBER_OF_AWARDS_LEGACY = "hide_the_number_of_awards";
     public static final String HIDE_COMMENT_AWARDS_LEGACY = "hide_comment_awards";
+    public static final String SET_API_KEY = "set_api_key";
+    public static final String SET_API_USERNAME = "set_api_username";
 }
