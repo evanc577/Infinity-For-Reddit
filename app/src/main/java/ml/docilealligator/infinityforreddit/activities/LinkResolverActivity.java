@@ -1,7 +1,7 @@
 package ml.docilealligator.infinityforreddit.activities;
 
+import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -9,6 +9,8 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.webkit.URLUtil;
 import android.widget.Toast;
 
@@ -17,12 +19,20 @@ import androidx.browser.customtabs.CustomTabColorSchemeParams;
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.browser.customtabs.CustomTabsService;
 
+
 import org.apache.commons.io.FilenameUtils;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -38,6 +48,7 @@ public class LinkResolverActivity extends AppCompatActivity {
     public static final String EXTRA_NEW_ACCOUNT_NAME = "ENAN";
     public static final String EXTRA_IS_NSFW = "EIN";
 
+    private static final String SHARE_PATTERN = "^/r/[\\w-]+/s/.*";
     private static final String POST_PATTERN = "/r/[\\w-]+/comments/\\w+/?\\w+/?";
     private static final String POST_PATTERN_2 = "/(u|U|user)/[\\w-]+/comments/\\w+/?\\w+/?";
     private static final String POST_PATTERN_3 = "/[\\w-]+$";
@@ -74,6 +85,7 @@ public class LinkResolverActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        finish();
 
         ((Infinity) getApplication()).getAppComponent().inject(this);
 
@@ -82,14 +94,12 @@ public class LinkResolverActivity extends AppCompatActivity {
             String url = getIntent().getStringExtra(Intent.EXTRA_TEXT);
             if (!URLUtil.isValidUrl(url)) {
                 Toast.makeText(this, R.string.invalid_link, Toast.LENGTH_SHORT).show();
-                finish();
                 return;
             }
             try {
                 uri = Uri.parse(url);
             } catch (NullPointerException e) {
                 Toast.makeText(this, R.string.invalid_link, Toast.LENGTH_SHORT).show();
-                finish();
                 return;
             }
         }
@@ -97,12 +107,59 @@ public class LinkResolverActivity extends AppCompatActivity {
         if (uri.getScheme() == null && uri.getHost() == null) {
             if (uri.toString().isEmpty()) {
                 Toast.makeText(this, R.string.invalid_link, Toast.LENGTH_SHORT).show();
-                finish();
                 return;
             }
-            handleUri(getRedditUriByPath(uri.toString()));
-        } else {
-            handleUri(uri);
+            uri = getRedditUriByPath(uri.toString());
+        }
+
+        handleUri(uri);
+    }
+
+    public interface UriOperator {
+        void apply(Uri uri);
+    }
+
+    private void followRedirect(Uri uri, UriOperator op) {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+        Future<?> future = executor.submit(() -> {
+            HttpURLConnection connection;
+            String lastUrl = uri.toString();
+            try {
+                do {
+                    connection = (HttpURLConnection) new URL(lastUrl)
+                            .openConnection();
+                    connection.setInstanceFollowRedirects(false);
+                    connection.setRequestMethod("HEAD");
+                    connection.connect();
+                    int responseCode = connection.getResponseCode();
+                    if (responseCode >= 300 && responseCode < 400) {
+                        String redirectedUrl = connection.getHeaderField("Location");
+                        if (null == redirectedUrl) {
+                            break;
+                        }
+                        lastUrl = redirectedUrl;
+                    } else {
+                        break;
+                    }
+                } while (connection.getResponseCode() != HttpURLConnection.HTTP_OK);
+                connection.disconnect();
+            } catch (Exception e) {
+                return;
+            }
+
+            final Uri uri1 = Uri.parse(lastUrl);
+            handler.post(() -> op.apply(uri1));
+        });
+
+        try {
+            future.get(5, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            future.cancel(true);
+        } catch (Exception e) {
+            Toast.makeText(this, R.string.invalid_link, Toast.LENGTH_SHORT).show();
+        } finally {
+            executor.shutdownNow();
         }
     }
 
@@ -178,6 +235,9 @@ public class LinkResolverActivity extends AppCompatActivity {
                                 startActivity(intent);
                             } else if (path.equals("/report")) {
                                 openInWebView(uri);
+                            } else if (path.matches(SHARE_PATTERN)) {
+                                // Share URL is a redirect to a regular reddit URL
+                                followRedirect(uri, this::handleUri);
                             } else if (path.matches(POST_PATTERN) || path.matches(POST_PATTERN_2)) {
                                 int commentsIndex = segments.lastIndexOf("comments");
                                 if (commentsIndex >= 0 && commentsIndex < segments.size() - 1) {
@@ -402,7 +462,7 @@ public class LinkResolverActivity extends AppCompatActivity {
         if (!resolveInfos.isEmpty()) {
             // Try launching in external app if possible
             boolean launched = Build.VERSION.SDK_INT >= 30 ?
-                    launchNativeApi30( uri) :
+                    launchNativeApi30(uri) :
                     launchNativeBeforeApi30(pm, uri);
             if (!launched) {
                 // Otherwise open in custom tab
@@ -437,6 +497,7 @@ public class LinkResolverActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("InlinedApi")
     private boolean launchNativeApi30(Uri uri) {
         Intent nativeAppIntent = new Intent(Intent.ACTION_VIEW, uri)
                 .addCategory(Intent.CATEGORY_BROWSABLE)
