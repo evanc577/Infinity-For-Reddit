@@ -67,7 +67,9 @@ import androidx.media3.datasource.cache.CacheDataSource;
 import androidx.media3.datasource.cache.SimpleCache;
 import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.dash.DashMediaSource;
 import androidx.media3.exoplayer.hls.HlsMediaSource;
+import androidx.media3.exoplayer.smoothstreaming.SsMediaSource;
 import androidx.media3.exoplayer.source.ProgressiveMediaSource;
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
 import androidx.media3.ui.PlayerControlView;
@@ -115,10 +117,10 @@ import ml.docilealligator.infinityforreddit.services.DownloadRedditVideoService;
 import ml.docilealligator.infinityforreddit.utils.APIUtils;
 import ml.docilealligator.infinityforreddit.utils.SharedPreferencesUtils;
 import ml.docilealligator.infinityforreddit.utils.Utils;
+import retrofit2.Retrofit;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 
 public class ViewVideoActivity extends AppCompatActivity implements CustomFontReceiver {
 
@@ -308,11 +310,6 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
 
             binding.getDownloadButton().setOnClickListener(view -> {
                 if (isDownloading) {
-                    return;
-                }
-
-                if (videoDownloadUrl == null) {
-                    Toast.makeText(this, R.string.fetching_video_info_please_wait, Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -614,12 +611,10 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
             if (mVideoUri == null) {
                 loadStreamableVideo(shortCode, savedInstanceState);
             } else {
-                player.prepare();
-                player.setMediaSource(new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(mVideoUri)));
-                preparePlayer(savedInstanceState);
+                loadVideo(savedInstanceState, mVideoUri);
             }
         } else if (videoType == VIDEO_TYPE_V_REDD_IT) {
-            loadVReddItVideo(savedInstanceState);
+            loadVideo(savedInstanceState, mVideoUri);
         } else if (videoType == VIDEO_TYPE_REDGIFS) {
             if (savedInstanceState != null) {
                 videoDownloadUrl = savedInstanceState.getString(VIDEO_DOWNLOAD_URL_STATE);
@@ -636,9 +631,7 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
             if (mVideoUri == null) {
                 loadRedgifsVideo(redgifsId, savedInstanceState);
             } else {
-                player.prepare();
-                player.setMediaSource(new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(mVideoUri)));
-                preparePlayer(savedInstanceState);
+                loadVideo(savedInstanceState, mVideoUri);
             }
         } else if (videoType == VIDEO_TYPE_DIRECT || videoType == VIDEO_TYPE_IMGUR) {
             videoDownloadUrl = mVideoUri.toString();
@@ -647,19 +640,13 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
             } else {
                 videoFileName = "imgur-" + FilenameUtils.getName(videoDownloadUrl);
             }
-            // Prepare the player with the source.
-            player.prepare();
-            player.setMediaSource(new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(mVideoUri)));
-            preparePlayer(savedInstanceState);
+            loadVideo(savedInstanceState, mVideoUri);
         } else {
             videoDownloadUrl = intent.getStringExtra(EXTRA_VIDEO_DOWNLOAD_URL);
             subredditName = intent.getStringExtra(EXTRA_SUBREDDIT);
             id = intent.getStringExtra(EXTRA_ID);
             videoFileName = subredditName + "-" + id + ".mp4";
-            // Prepare the player with the source.
-            player.prepare();
-            player.setMediaSource(new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(mVideoUri)));
-            preparePlayer(savedInstanceState);
+            loadVideo(savedInstanceState, mVideoUri);
         }
 
         getOnBackPressedDispatcher().addCallback(new OnBackPressedCallback(true) {
@@ -744,9 +731,7 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
                         binding.getProgressBar().setVisibility(View.GONE);
                         mVideoUri = Uri.parse(webm);
                         videoDownloadUrl = mp4;
-                        preparePlayer(savedInstanceState);
-                        player.prepare();
-                        player.setMediaSource(new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(mVideoUri)));
+                        loadVideo(savedInstanceState, mVideoUri);
                     }
 
                     @Override
@@ -758,79 +743,31 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
                 });
     }
 
-    private void loadVReddItVideo(Bundle savedInstanceState) {
-        binding.getProgressBar().setVisibility(View.VISIBLE);
-        mVReddItRetrofit.create(VReddIt.class).getRedirectUrl(getIntent().getStringExtra(EXTRA_V_REDD_IT_URL)).enqueue(new Callback<>() {
-            @Override
-            public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
-                Uri redirectUri = Uri.parse(response.raw().request().url().toString());
-                String redirectPath = redirectUri.getPath();
-                if (redirectPath != null && (redirectPath.matches("/r/\\w+/comments/\\w+/?\\w+/?") || redirectPath.matches("/user/\\w+/comments/\\w+/?\\w+/?"))) {
-                    List<String> segments = redirectUri.getPathSegments();
-                    int commentsIndex = segments.lastIndexOf("comments");
-                    String postId = segments.get(commentsIndex + 1);
-                    FetchPost.fetchPost(mExecutor, new Handler(), mRetrofit, postId, null, Account.ANONYMOUS_ACCOUNT,
-                            new FetchPost.FetchPostListener() {
-                                @OptIn(markerClass = UnstableApi.class)
-                                @Override
-                                public void fetchPostSuccess(Post post) {
-                                    videoFallbackDirectUrl = post.getVideoFallBackDirectUrl();
-                                    if (post.isRedgifs()) {
-                                        videoType = VIDEO_TYPE_REDGIFS;
-                                        String redgifsId = post.getRedgifsId();
-                                        if (redgifsId != null && redgifsId.contains("-")) {
-                                            redgifsId = redgifsId.substring(0, redgifsId.indexOf('-'));
-                                        }
-                                        videoFileName = "Redgifs-" + redgifsId + ".mp4";
-                                        loadRedgifsVideo(redgifsId, savedInstanceState);
-                                    } else if (post.isStreamable()) {
-                                        videoType = VIDEO_TYPE_STREAMABLE;
-                                        String shortCode = post.getStreamableShortCode();
-                                        videoFileName = "Streamable-" + shortCode + ".mp4";
-                                        loadStreamableVideo(shortCode, savedInstanceState);
-                                    } else if (post.isImgur()) {
-                                        mVideoUri = Uri.parse(post.getVideoUrl());
-                                        videoDownloadUrl = post.getVideoDownloadUrl();
-                                        videoType = VIDEO_TYPE_IMGUR;
-                                        videoFileName = "imgur-" + FilenameUtils.getName(videoDownloadUrl);
-                                        // Prepare the player with the source.
-                                        player.prepare();
-                                        player.setMediaSource(new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(mVideoUri)));
-                                        preparePlayer(savedInstanceState);
-                                    } else {
-                                        binding.getProgressBar().setVisibility(View.GONE);
-                                        if (post.getVideoUrl() != null) {
-                                            mVideoUri = Uri.parse(post.getVideoUrl());
-                                            subredditName = post.getSubredditName();
-                                            id = post.getId();
-                                            videoDownloadUrl = post.getVideoDownloadUrl();
+    @OptIn(markerClass = UnstableApi.class)
+    private void loadVideo(Bundle savedInstanceState, Uri uri) {
+        binding.getProgressBar().setVisibility(View.GONE);
+        mVideoUri = uri;
 
-                                            videoFileName = subredditName + "-" + id + ".mp4";
-                                            // Prepare the player with the source.
-                                            preparePlayer(savedInstanceState);
-                                            player.prepare();
-                                            player.setMediaSource(new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(mVideoUri)));
-                                        } else {
-                                            Toast.makeText(ViewVideoActivity.this, R.string.error_fetching_v_redd_it_video_cannot_get_video_url, Toast.LENGTH_LONG).show();
-                                        }
-                                    }
-                                }
-
-                                @Override
-                                public void fetchPostFailed() {
-                                    Toast.makeText(ViewVideoActivity.this, R.string.error_fetching_v_redd_it_video_cannot_get_post, Toast.LENGTH_LONG).show();
-                                }
-                            });
-                } else {
-                    Toast.makeText(ViewVideoActivity.this, R.string.error_fetching_v_redd_it_video_cannot_get_post_id, Toast.LENGTH_LONG).show();
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
-                Toast.makeText(ViewVideoActivity.this, R.string.error_fetching_v_redd_it_video_cannot_get_redirect_url, Toast.LENGTH_LONG).show();
-            }
-        });
+        // Produces DataSource instances through which media data is loaded.
+        dataSourceFactory = new CacheDataSource.Factory().setCache(mSimpleCache)
+                .setUpstreamDataSourceFactory(new DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true).setUserAgent(APIUtils.USER_AGENT));
+        // Prepare the player with the source.
+        player.prepare();
+        switch (Util.inferContentType(mVideoUri)) {
+            case C.CONTENT_TYPE_DASH:
+                player.setMediaSource(new DashMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(mVideoUri)));
+                break;
+            case C.CONTENT_TYPE_SS:
+                player.setMediaSource(new SsMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(mVideoUri)));
+                break;
+            case C.CONTENT_TYPE_HLS:
+                player.setMediaSource(new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(mVideoUri)));
+                break;
+            case C.CONTENT_TYPE_OTHER:
+                player.setMediaSource(new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(mVideoUri)));
+                break;
+        }
+        preparePlayer(savedInstanceState);
     }
 
     private void loadStreamableVideo(String shortCode, Bundle savedInstanceState) {
@@ -848,9 +785,7 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
                         binding.getProgressBar().setVisibility(View.GONE);
                         videoDownloadUrl = streamableVideo.mp4 == null ? streamableVideo.mp4Mobile.url : streamableVideo.mp4.url;
                         mVideoUri = Uri.parse(videoDownloadUrl);
-                        preparePlayer(savedInstanceState);
-                        player.prepare();
-                        player.setMediaSource(new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(mVideoUri)));
+                        loadVideo(savedInstanceState, mVideoUri);
                     }
 
                     @Override
@@ -871,9 +806,7 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
                 videoDownloadUrl = videoFallbackDirectUrl;
                 mVideoUri = Uri.parse(videoFallbackDirectUrl);
                 videoFileName = videoFileName == null ? FilenameUtils.getName(videoDownloadUrl) : videoFileName;
-                player.prepare();
-                player.setMediaSource(new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(mVideoUri)));
-                preparePlayer(savedInstanceState);
+                loadVideo(savedInstanceState, mVideoUri);
             }
         }
     }
@@ -907,8 +840,8 @@ public class ViewVideoActivity extends AppCompatActivity implements CustomFontRe
             }
 
             if (videoDownloadUrl == null) {
-                Toast.makeText(this, R.string.fetching_video_info_please_wait, Toast.LENGTH_SHORT).show();
-                return true;
+                Toast.makeText(this, "Can't download, no url. Code is spaghetti I don't wanna fix it", Toast.LENGTH_SHORT).show();
+                return false;
             }
 
             isDownloading = true;
