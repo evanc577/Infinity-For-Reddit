@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -44,6 +46,7 @@ public class LinkResolverActivity extends AppCompatActivity {
     public static final String EXTRA_NEW_ACCOUNT_NAME = "ENAN";
     public static final String EXTRA_IS_NSFW = "EIN";
 
+    private static final Pattern VIDEO_PATTERN = Pattern.compile("^/link/[\\w-]+/video/([\\w-)]+)/player");
     private static final String POST_PATTERN = "/r/[\\w-]+/comments/\\w+/?\\w+/?";
     private static final String POST_PATTERN_2 = "/(u|U|user)/[\\w-]+/comments/\\w+/?\\w+/?";
     private static final String POST_PATTERN_3 = "/[\\w-]+$";
@@ -126,6 +129,7 @@ public class LinkResolverActivity extends AppCompatActivity {
     }
 
     private void handleUri(Uri uri) {
+        Matcher matcher;
         if (uri == null) {
             Toast.makeText(this, R.string.no_link_available, Toast.LENGTH_SHORT).show();
         } else {
@@ -316,6 +320,8 @@ public class LinkResolverActivity extends AppCompatActivity {
                                         deepLinkError(uri);
                                     }
                                 });
+                            } else if ((matcher = VIDEO_PATTERN.matcher(path)).matches()) {
+                                handleUri(Uri.parse("https://v.redd.it/" + matcher.group(1)));
                             } else {
                                 deepLinkError(uri);
                             }
