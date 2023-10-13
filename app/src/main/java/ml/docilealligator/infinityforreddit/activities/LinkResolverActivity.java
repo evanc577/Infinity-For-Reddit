@@ -35,6 +35,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -56,6 +58,7 @@ public class LinkResolverActivity extends AppCompatActivity {
     public static final String EXTRA_IS_NSFW = "EIN";
 
     private static final String SHARE_PATTERN = "^/r/[\\w-]+/s/.*";
+    private static final Pattern VIDEO_PATTERN = Pattern.compile("^/link/[\\w-]+/video/([\\w-)]+)/player");
     private static final String POST_PATTERN = "/r/[\\w-]+/comments/\\w+/?\\w+/?";
     private static final String POST_PATTERN_2 = "/(u|U|user)/[\\w-]+/comments/\\w+/?\\w+/?";
     private static final String POST_PATTERN_3 = "/[\\w-]+$";
@@ -176,6 +179,7 @@ public class LinkResolverActivity extends AppCompatActivity {
     }
 
     private void handleUri(Uri uri) {
+        Matcher matcher;
         if (uri == null) {
             Toast.makeText(this, R.string.no_link_available, Toast.LENGTH_SHORT).show();
         } else {
@@ -231,6 +235,7 @@ public class LinkResolverActivity extends AppCompatActivity {
                             startActivity(intent);
                         } else if (authority.equals("v.redd.it")) {
                             Intent intent = new Intent(this, ViewVideoActivity.class);
+                            intent.setData(Uri.parse(uri.toString() + "/DASHPlaylist.mpd"));
                             intent.putExtra(ViewVideoActivity.EXTRA_VIDEO_TYPE, ViewVideoActivity.VIDEO_TYPE_V_REDD_IT);
                             intent.putExtra(ViewVideoActivity.EXTRA_V_REDD_IT_URL, uri.toString());
                             startActivity(intent);
@@ -354,6 +359,8 @@ public class LinkResolverActivity extends AppCompatActivity {
                                         deepLinkError(uri);
                                     }
                                 });
+                            } else if ((matcher = VIDEO_PATTERN.matcher(path)).matches()) {
+                                handleUri(Uri.parse("https://v.redd.it/" + matcher.group(1)));
                             } else {
                                 deepLinkError(uri);
                             }
