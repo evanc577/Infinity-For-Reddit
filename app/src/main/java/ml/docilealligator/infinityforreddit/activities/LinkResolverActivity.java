@@ -69,7 +69,7 @@ public class LinkResolverActivity extends AppCompatActivity {
     @Inject
     @Named("no_oauth")
     Retrofit mRetrofit;
-    private boolean fromBrowser;
+    private boolean openInExternalApp;
 
     @Inject
     @Named("default")
@@ -94,7 +94,8 @@ public class LinkResolverActivity extends AppCompatActivity {
 
         var intent = getIntent();
 
-        fromBrowser = intent.hasExtra("com.android.browser.application_id");
+        // Abuse the EXTRA_IS_NSFW flag to determine if this is an infinite loop
+        openInExternalApp = intent.hasExtra("EIN");
 
         Uri uri = intent.getData();
         if (uri == null) {
@@ -442,7 +443,7 @@ public class LinkResolverActivity extends AppCompatActivity {
         if (!resolveInfos.isEmpty()) {
             boolean launched = false;
             // Try launching in external app if possible
-            if (!fromBrowser) {
+            if (openInExternalApp) {
                 launched = Build.VERSION.SDK_INT >= 30 ?
                         launchNativeApi30(uri) :
                         launchNativeBeforeApi30(pm, uri);
