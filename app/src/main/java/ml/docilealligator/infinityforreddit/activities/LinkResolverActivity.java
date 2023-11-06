@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.webkit.URLUtil;
 import android.widget.Toast;
 
@@ -23,6 +24,7 @@ import androidx.browser.customtabs.CustomTabsService;
 import org.apache.commons.io.FilenameUtils;
 
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -70,6 +72,7 @@ public class LinkResolverActivity extends AppCompatActivity {
     private static final String WIKI_PATTERN = "/[rR]/[\\w-]+/(wiki|w)(?:/[\\w-]+)*";
     private static final String GOOGLE_AMP_PATTERN = "/amp/s/amp.reddit.com/.*";
     private static final String STREAMABLE_PATTERN = "/\\w+/?";
+    private boolean fromBrowser;
 
     @Inject
     @Named("default")
@@ -88,21 +91,26 @@ public class LinkResolverActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        finish();
 
         ((Infinity) getApplication()).getAppComponent().inject(this);
 
-        Uri uri = getIntent().getData();
+        var intent = getIntent();
+
+        fromBrowser = intent.hasExtra("com.android.browser.application_id");
+
+        Uri uri = intent.getData();
         if (uri == null) {
             String url = getIntent().getStringExtra(Intent.EXTRA_TEXT);
             if (!URLUtil.isValidUrl(url)) {
                 Toast.makeText(this, R.string.invalid_link, Toast.LENGTH_SHORT).show();
+                finish();
                 return;
             }
             try {
                 uri = Uri.parse(url);
             } catch (NullPointerException e) {
                 Toast.makeText(this, R.string.invalid_link, Toast.LENGTH_SHORT).show();
+                finish();
                 return;
             }
         }
@@ -110,6 +118,7 @@ public class LinkResolverActivity extends AppCompatActivity {
         if (uri.getScheme() == null && uri.getHost() == null) {
             if (uri.toString().isEmpty()) {
                 Toast.makeText(this, R.string.invalid_link, Toast.LENGTH_SHORT).show();
+                finish();
                 return;
             }
             uri = getRedditUriByPath(uri.toString());
@@ -125,7 +134,7 @@ public class LinkResolverActivity extends AppCompatActivity {
     private void followRedirect(Uri uri, UriOperator op) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
-        Future<?> future = executor.submit(() -> {
+        Future<Uri> future = executor.submit(() -> {
             HttpURLConnection connection;
             String lastUrl = uri.toString();
             try {
@@ -141,22 +150,30 @@ public class LinkResolverActivity extends AppCompatActivity {
                         if (null == redirectedUrl) {
                             break;
                         }
-                        lastUrl = redirectedUrl;
+                        URI tmpUrl = new URI(lastUrl);
+                        lastUrl = tmpUrl.resolve(redirectedUrl).toString();
+                        Log.i("followRedirects",lastUrl);
                     } else {
                         break;
                     }
                 } while (connection.getResponseCode() != HttpURLConnection.HTTP_OK);
                 connection.disconnect();
             } catch (Exception e) {
-                return;
+                return null;
             }
 
             final Uri uri1 = Uri.parse(lastUrl);
-            handler.post(() -> op.apply(uri1));
+            return uri1;
         });
 
         try {
-            future.get(5, TimeUnit.SECONDS);
+            var resolvedUrl = future.get(5, TimeUnit.SECONDS);
+            if (resolvedUrl != null) {
+                handleUri(resolvedUrl);
+            } else {
+                Toast.makeText(this, R.string.invalid_link, Toast.LENGTH_SHORT).show();
+                finish();
+            }
         } catch (TimeoutException e) {
             future.cancel(true);
         } catch (Exception e) {
@@ -223,7 +240,7 @@ public class LinkResolverActivity extends AppCompatActivity {
                             startActivity(intent);
                         } else if (authority.equals("v.redd.it")) {
                             Intent intent = new Intent(this, ViewVideoActivity.class);
-                            intent.setData(Uri.parse(uri.toString() + "/DASHPlaylist.mpd"));
+                            intent.setData(Uri.parse(uri + "/DASHPlaylist.mpd"));
                             intent.putExtra(ViewVideoActivity.EXTRA_VIDEO_TYPE, ViewVideoActivity.VIDEO_TYPE_V_REDD_IT);
                             intent.putExtra(ViewVideoActivity.EXTRA_V_REDD_IT_URL, uri.toString());
                             startActivity(intent);
@@ -467,10 +484,13 @@ public class LinkResolverActivity extends AppCompatActivity {
     private void openInCustomTabs(Uri uri, PackageManager pm, boolean handleError) {
         ArrayList<ResolveInfo> resolveInfos = getCustomTabsPackages(pm);
         if (!resolveInfos.isEmpty()) {
+            boolean launched = false;
             // Try launching in external app if possible
-            boolean launched = Build.VERSION.SDK_INT >= 30 ?
-                    launchNativeApi30(uri) :
-                    launchNativeBeforeApi30(pm, uri);
+            if (!fromBrowser) {
+                launched = Build.VERSION.SDK_INT >= 30 ?
+                        launchNativeApi30(uri) :
+                        launchNativeBeforeApi30(pm, uri);
+            }
             if (!launched) {
                 // Otherwise open in custom tab
                 CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
@@ -483,7 +503,7 @@ public class LinkResolverActivity extends AppCompatActivity {
                 CustomTabsIntent customTabsIntent = builder.build();
                 customTabsIntent.intent.setPackage(resolveInfos.get(0).activityInfo.packageName);
                 if (uri.getScheme() == null) {
-                    uri = Uri.parse("http://" + uri.toString());
+                    uri = Uri.parse("http://" + uri);
                 }
                 try {
                     customTabsIntent.launchUrl(this, uri);
