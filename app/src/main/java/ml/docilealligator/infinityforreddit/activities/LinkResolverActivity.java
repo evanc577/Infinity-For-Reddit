@@ -54,6 +54,7 @@ public class LinkResolverActivity extends AppCompatActivity {
 
     private static final String SHARE_PATTERN = "^/r/[\\w-]+/s/.*";
     private static final Pattern VIDEO_PATTERN = Pattern.compile("^/link/[\\w-]+/video/([\\w-)]+)/player");
+    private static final Pattern REDDIT_IMAGE_PATTERN =  Pattern.compile("^/media$");
     private static final String POST_PATTERN = "/r/[\\w-]+/comments/\\w+/?\\w+/?";
     private static final String POST_PATTERN_2 = "/(u|U|user)/[\\w-]+/comments/\\w+/?\\w+/?";
     private static final String POST_PATTERN_3 = "/[\\w-]+$";
@@ -261,6 +262,19 @@ public class LinkResolverActivity extends AppCompatActivity {
                             } else if (path.matches(SHARE_PATTERN)) {
                                 // Share URL is a redirect to a regular reddit URL
                                 followRedirect(uri, this::handleUri);
+                            } else if (REDDIT_IMAGE_PATTERN.matcher(path).matches()) {
+                                // reddit.com/media, actual image url is stored in the "url" query param
+                                try {
+                                    Intent intent = new Intent(this, ViewImageOrGifActivity.class);
+                                    String url = uri.getQueryParameter("url");
+                                    String fileName = FilenameUtils.getName(path);
+                                    intent.putExtra(ViewImageOrGifActivity.EXTRA_IMAGE_URL_KEY, url);
+                                    intent.putExtra(ViewImageOrGifActivity.EXTRA_FILE_NAME_KEY, fileName);
+                                    intent.putExtra(ViewImageOrGifActivity.EXTRA_POST_TITLE_KEY, fileName);
+                                    startActivity(intent);
+                                } catch (Exception e) {
+                                    deepLinkError(uri);
+                                }
                             } else if (path.matches(POST_PATTERN) || path.matches(POST_PATTERN_2)) {
                                 int commentsIndex = segments.lastIndexOf("comments");
                                 if (commentsIndex >= 0 && commentsIndex < segments.size() - 1) {
