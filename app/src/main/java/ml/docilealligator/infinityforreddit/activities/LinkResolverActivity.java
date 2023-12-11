@@ -41,6 +41,8 @@ import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import retrofit2.Retrofit;
+
 import ml.docilealligator.infinityforreddit.Infinity;
 import ml.docilealligator.infinityforreddit.R;
 import ml.docilealligator.infinityforreddit.customtheme.CustomThemeWrapper;
@@ -79,8 +81,13 @@ public class LinkResolverActivity extends AppCompatActivity {
     private boolean openInExternalApp;
 
     @Inject
+    @Named("no_oauth")
+    Retrofit mRetrofit;
+    
+    @Inject
     @Named("default")
     SharedPreferences mSharedPreferences;
+    
     @Inject
     CustomThemeWrapper mCustomThemeWrapper;
 
@@ -100,8 +107,8 @@ public class LinkResolverActivity extends AppCompatActivity {
 
         APIUtils.init(this);
         ((Infinity) getApplication()).getAppComponent().inject(this);
-        shareLinkHandler = new ShareLinkHandler();
         var intent = getIntent();
+        shareLinkHandler = new ShareLinkHandler(mRetrofit);
 
         // Abuse the EXTRA_IS_NSFW flag to determine if this is an infinite loop
         openInExternalApp = intent.hasExtra("EIN");
