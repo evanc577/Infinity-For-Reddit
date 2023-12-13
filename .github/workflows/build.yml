@@ -1,32 +1,39 @@
-name: Build
+name: Build APK for release
 
 on:
-  push:
-  pull_request:
-  workflow_dispatch:
+  release:
+    types: [created]
 
 jobs:
-  Build:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v3
-
-    - name: Set-up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-
-    - name: Setup and build with Gradle
-      uses: gradle/gradle-build-action@v2
-      with:
-        arguments: build -x lint
-
-    - name: Upload apk
-      uses: actions/upload-artifact@v3
-      with:
-        name: Infinity-${{github.sha}}
-        path: app/build/outputs/apk/
-        if-no-files-found: error
+      - name: Decode Keystore
+        id: decode_keystore
+        uses: timheuer/base64-to-file@v1
+        with:
+          fileName: 'keystore.jks'
+          encodedString: ${{ secrets.KEYSTORE }}
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: set up JDK 17
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+          distribution: 'temurin'
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+      - name: build prod
+        run: ./gradlew assembleRelease
+        env:
+          SIGNING_STORE_FILE: ${{ steps.decode_keystore.outputs.filePath }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+      - name: Rename APK
+        run: cp app/build/outputs/apk/release/app-release.apk infinity-key-${{ github.ref_name }}.apk 
+      - name: Upload release Asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run:
+          gh release upload ${{ github.ref_name }} infinity-key-${{ github.ref_name }}.apk
