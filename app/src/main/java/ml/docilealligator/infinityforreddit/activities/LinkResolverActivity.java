@@ -44,6 +44,7 @@ import javax.inject.Named;
 import ml.docilealligator.infinityforreddit.Infinity;
 import ml.docilealligator.infinityforreddit.R;
 import ml.docilealligator.infinityforreddit.customtheme.CustomThemeWrapper;
+import ml.docilealligator.infinityforreddit.utils.APIUtils;
 import ml.docilealligator.infinityforreddit.utils.SharedPreferencesUtils;
 
 public class LinkResolverActivity extends AppCompatActivity {
@@ -92,6 +93,8 @@ public class LinkResolverActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        APIUtils.hasApiBeenSetup(this);
 
         ((Infinity) getApplication()).getAppComponent().inject(this);
 
