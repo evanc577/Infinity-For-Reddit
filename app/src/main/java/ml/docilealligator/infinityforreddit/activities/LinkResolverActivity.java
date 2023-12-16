@@ -53,7 +53,6 @@ public class LinkResolverActivity extends AppCompatActivity {
     public static final String EXTRA_NEW_ACCOUNT_NAME = "ENAN";
     public static final String EXTRA_IS_NSFW = "EIN";
 
-    private static final String SHARE_PATTERN = "^/r/[\\w-]+/s/.*";
     private static final Pattern VIDEO_PATTERN = Pattern.compile("^/link/[\\w-]+/video/([\\w-)]+)/player");
     private static final Pattern REDDIT_IMAGE_PATTERN =  Pattern.compile("^/media$");
     private static final String POST_PATTERN = "/r/[\\w-]+/comments/\\w+/?\\w+/?";
@@ -136,58 +135,6 @@ public class LinkResolverActivity extends AppCompatActivity {
         void apply(Uri uri);
     }
 
-    private void followRedirect(Uri uri, UriOperator op) {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Handler handler = new Handler(Looper.getMainLooper());
-        Future<Uri> future = executor.submit(() -> {
-            HttpURLConnection connection;
-            String lastUrl = uri.toString();
-            try {
-                do {
-                    connection = (HttpURLConnection) new URL(lastUrl)
-                            .openConnection();
-                    connection.setInstanceFollowRedirects(false);
-                    connection.setRequestMethod("HEAD");
-                    connection.connect();
-                    int responseCode = connection.getResponseCode();
-                    if (responseCode >= 300 && responseCode < 400) {
-                        String redirectedUrl = connection.getHeaderField("Location");
-                        if (null == redirectedUrl) {
-                            break;
-                        }
-                        URI tmpUrl = new URI(lastUrl);
-                        lastUrl = tmpUrl.resolve(redirectedUrl).toString();
-                        Log.i("followRedirects",lastUrl);
-                    } else {
-                        break;
-                    }
-                } while (connection.getResponseCode() != HttpURLConnection.HTTP_OK);
-                connection.disconnect();
-            } catch (Exception e) {
-                return null;
-            }
-
-            final Uri uri1 = Uri.parse(lastUrl);
-            return uri1;
-        });
-
-        try {
-            var resolvedUrl = future.get(5, TimeUnit.SECONDS);
-            if (resolvedUrl != null) {
-                handleUri(resolvedUrl);
-            } else {
-                Toast.makeText(this, R.string.invalid_link, Toast.LENGTH_SHORT).show();
-                finish();
-            }
-        } catch (TimeoutException e) {
-            future.cancel(true);
-        } catch (Exception e) {
-            Toast.makeText(this, R.string.invalid_link, Toast.LENGTH_SHORT).show();
-        } finally {
-            executor.shutdownNow();
-        }
-    }
-
     private void handleUri(Uri uri) {
         Matcher matcher;
         if (uri == null) {
@@ -262,9 +209,6 @@ public class LinkResolverActivity extends AppCompatActivity {
                                 startActivity(intent);
                             } else if (path.equals("/report")) {
                                 openInWebView(uri);
-                            } else if (path.matches(SHARE_PATTERN)) {
-                                // Share URL is a redirect to a regular reddit URL
-                                followRedirect(uri, this::handleUri);
                             } else if (REDDIT_IMAGE_PATTERN.matcher(path).matches()) {
                                 // reddit.com/media, actual image url is stored in the "url" query param
                                 try {
