@@ -6,7 +6,7 @@ android {
     compileSdk 33
     defaultConfig {
         applicationId "ml.docilealligator.infinityforreddit"
-        minSdk 21
+        minSdk 24
         targetSdk 33
         versionCode 150
         versionName "6.5.6"

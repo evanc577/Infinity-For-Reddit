@@ -9,9 +9,6 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
 import android.webkit.URLUtil;
 import android.widget.Toast;
 
@@ -23,29 +20,24 @@ import androidx.browser.customtabs.CustomTabsService;
 
 import org.apache.commons.io.FilenameUtils;
 
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import retrofit2.Retrofit;
+
 import ml.docilealligator.infinityforreddit.Infinity;
 import ml.docilealligator.infinityforreddit.R;
 import ml.docilealligator.infinityforreddit.customtheme.CustomThemeWrapper;
 import ml.docilealligator.infinityforreddit.utils.APIUtils;
 import ml.docilealligator.infinityforreddit.utils.SharedPreferencesUtils;
+import ml.docilealligator.infinityforreddit.utils.ShareLinkHandler;
 
 public class LinkResolverActivity extends AppCompatActivity {
 
@@ -61,6 +53,8 @@ public class LinkResolverActivity extends AppCompatActivity {
     private static final String COMMENT_PATTERN = "/(r|u|U|user)/[\\w-]+/comments/\\w+/?[\\w-]+/\\w+/?";
     private static final String SUBREDDIT_PATTERN = "/[rR]/[\\w-]+/?";
     private static final String USER_PATTERN = "/(u|U|user)/[\\w-]+/?";
+    private static final String SHARELINK_SUBREDDIT_PATTERN = "/r/[\\w-]+/s/[\\w-]+";
+    private static final String SHARELINK_USER_PATTERN = "/u/[\\w-]+/s/[\\w-]+";
     private static final String SIDEBAR_PATTERN = "/[rR]/[\\w-]+/about/sidebar";
     private static final String MULTIREDDIT_PATTERN = "/user/[\\w-]+/m/\\w+/?";
     private static final String MULTIREDDIT_PATTERN_2 = "/[rR]/(\\w+\\+?)+/?";
@@ -76,8 +70,13 @@ public class LinkResolverActivity extends AppCompatActivity {
     private boolean openInExternalApp;
 
     @Inject
+    @Named("no_oauth")
+    Retrofit mRetrofit;
+    
+    @Inject
     @Named("default")
     SharedPreferences mSharedPreferences;
+    
     @Inject
     CustomThemeWrapper mCustomThemeWrapper;
 
@@ -92,6 +91,7 @@ public class LinkResolverActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        finish();
 
         APIUtils.init(this);
 
@@ -103,18 +103,18 @@ public class LinkResolverActivity extends AppCompatActivity {
         openInExternalApp = intent.hasExtra("EIN");
 
         Uri uri = intent.getData();
+        ShareLinkHandler shareLinkHandler = new ShareLinkHandler(mRetrofit);
+
         if (uri == null) {
             String url = getIntent().getStringExtra(Intent.EXTRA_TEXT);
             if (!URLUtil.isValidUrl(url)) {
                 Toast.makeText(this, R.string.invalid_link, Toast.LENGTH_SHORT).show();
-                finish();
                 return;
             }
             try {
                 uri = Uri.parse(url);
             } catch (NullPointerException e) {
                 Toast.makeText(this, R.string.invalid_link, Toast.LENGTH_SHORT).show();
-                finish();
                 return;
             }
         }
@@ -122,17 +122,21 @@ public class LinkResolverActivity extends AppCompatActivity {
         if (uri.getScheme() == null && uri.getHost() == null) {
             if (uri.toString().isEmpty()) {
                 Toast.makeText(this, R.string.invalid_link, Toast.LENGTH_SHORT).show();
-                finish();
                 return;
             }
-            uri = getRedditUriByPath(uri.toString());
+            handleUri(getRedditUriByPath(uri.toString()));
+        } else if (uri.getPath().matches(SHARELINK_SUBREDDIT_PATTERN) || uri.getPath().matches(SHARELINK_USER_PATTERN)) {
+            String urlString = uri.toString();
+            shareLinkHandler.handleUrlResolve(urlString).thenAccept(realUrl -> {
+                if (realUrl != null) {
+                    handleUri(Uri.parse(realUrl));
+                } else {
+                    Toast.makeText(this, R.string.invalid_link, Toast.LENGTH_SHORT).show();
+                }
+            });        
+        } else {
+            handleUri(uri);
         }
-
-        handleUri(uri);
-    }
-
-    public interface UriOperator {
-        void apply(Uri uri);
     }
 
     private void handleUri(Uri uri) {
@@ -384,7 +388,6 @@ public class LinkResolverActivity extends AppCompatActivity {
             }
 
         }
-        finish();
     }
 
     private void deepLinkError(Uri uri) {
