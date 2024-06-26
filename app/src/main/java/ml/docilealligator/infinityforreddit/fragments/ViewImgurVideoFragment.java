@@ -22,7 +22,6 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.OptIn;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
@@ -36,7 +35,6 @@ import androidx.media3.datasource.DataSource;
 import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.datasource.cache.CacheDataSource;
 import androidx.media3.datasource.cache.SimpleCache;
-import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.ProgressiveMediaSource;
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
@@ -91,7 +89,6 @@ public class ViewImgurVideoFragment extends Fragment {
     }
 
 
-    @OptIn(markerClass = UnstableApi.class)
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -148,10 +145,7 @@ public class ViewImgurVideoFragment extends Fragment {
         });
 
         TrackSelector trackSelector = new DefaultTrackSelector(activity);
-        player = new ExoPlayer.Builder(activity)
-                .setTrackSelector(trackSelector)
-                .setRenderersFactory(new DefaultRenderersFactory(activity).setEnableDecoderFallback(true))
-                .build();
+        player = new ExoPlayer.Builder(activity).setTrackSelector(trackSelector).build();
         binding.getRoot().setPlayer(player);
         dataSourceFactory = new CacheDataSource.Factory().setCache(mSimpleCache)
                 .setUpstreamDataSourceFactory(new DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true).setUserAgent(APIUtils.getUserAgent()));

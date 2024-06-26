@@ -36,7 +36,6 @@ import androidx.media3.datasource.DataSource;
 import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.datasource.cache.CacheDataSource;
 import androidx.media3.datasource.cache.SimpleCache;
-import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.ProgressiveMediaSource;
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
@@ -150,10 +149,7 @@ public class ViewRedditGalleryVideoFragment extends Fragment {
         });
 
         TrackSelector trackSelector = new DefaultTrackSelector(activity);
-        player = new ExoPlayer.Builder(activity)
-                .setTrackSelector(trackSelector)
-                .setRenderersFactory(new DefaultRenderersFactory(activity).setEnableDecoderFallback(true))
-                .build();
+        player = new ExoPlayer.Builder(activity).setTrackSelector(trackSelector).build();
         binding.getPlayerView().setPlayer(player);
         dataSourceFactory = new CacheDataSource.Factory().setCache(mSimpleCache)
                 .setUpstreamDataSourceFactory(new DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true).setUserAgent(APIUtils.getUserAgent()));
