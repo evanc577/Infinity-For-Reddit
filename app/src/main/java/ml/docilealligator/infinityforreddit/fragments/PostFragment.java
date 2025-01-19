@@ -181,8 +181,6 @@ public class PostFragment extends PostFragmentBase implements FragmentCommunicat
 
         super.onCreateView(inflater, container, savedInstanceState);
 
-        APIUtils.init(activity.getApplicationContext());
-
         setHasOptionsMenu(true);
 
         applyTheme();

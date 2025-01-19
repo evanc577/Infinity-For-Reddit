@@ -93,8 +93,6 @@ public class LinkResolverActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        APIUtils.init(this);
-
         ((Infinity) getApplication()).getAppComponent().inject(this);
 
         var intent = getIntent();
