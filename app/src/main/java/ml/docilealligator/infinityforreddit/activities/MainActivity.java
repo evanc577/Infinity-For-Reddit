@@ -213,8 +213,6 @@ public class MainActivity extends BaseActivity implements SortTypeSelectionCallb
     protected void onCreate(Bundle savedInstanceState) {
         SplashScreen.installSplashScreen(this);
 
-        APIUtils.init(this);
-
         ((Infinity) getApplication()).getAppComponent().inject(this);
 
         setTheme(R.style.AppTheme_NoActionBarWithTransparentStatusBar);
