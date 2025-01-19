@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import ml.docilealligator.infinityforreddit.BuildConfig;
+import ml.docilealligator.infinityforreddit.Infinity;
 import ml.docilealligator.infinityforreddit.account.Account;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
@@ -106,7 +107,7 @@ public class APIUtils {
     private static final String API_TOKEN_KEY = "API_TOKEN";
     private static SharedPreferences apiSharedPreferences;
 
-    public static synchronized void init(final Context context) {
+    private static synchronized void init(final Context context) {
         if (apiSharedPreferences == null) {
             apiSharedPreferences = context.getSharedPreferences(
                     "api_shared_preferences",
@@ -115,19 +116,8 @@ public class APIUtils {
         }
     }
 
-    public static synchronized void setApiKey(final String key) {
-        apiSharedPreferences.edit()
-                .putString(API_TOKEN_KEY, key)
-                .apply();
-    }
-
-    public static synchronized void setApiUsername(final String username) {
-        apiSharedPreferences.edit()
-                .putString(USERNAME_KEY, username)
-                .apply();
-    }
-
     public static String getUserAgent() {
+        init(Infinity.getInstance());
         String username = apiSharedPreferences.getString(USERNAME_KEY, null);
         if (username == null || username.equals("")) {
             return "insomninfinity";
@@ -142,6 +132,7 @@ public class APIUtils {
     }
 
     public static String getClientId() {
+        init(Infinity.getInstance());
         return apiSharedPreferences.getString(API_TOKEN_KEY, "");
     }
 
