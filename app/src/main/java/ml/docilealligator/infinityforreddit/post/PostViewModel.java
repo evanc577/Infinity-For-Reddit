@@ -657,4 +657,26 @@ public class PostViewModel extends ViewModel {
             }
         });
     }
+
+    public void toggleNotification(@NonNull Post post, int position) {
+        Map<String, String> params = new HashMap<>();
+        params.put(APIUtils.ID_KEY, post.getFullName());
+        params.put(APIUtils.STATE_KEY, String.valueOf(!post.isSendReplies()));
+        retrofit.create(RedditAPI.class).toggleRepliesNotification(APIUtils.getOAuthHeader(accessToken), params).enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
+                if (response.isSuccessful()) {
+                    post.setSendReplies(!post.isSendReplies());
+                    moderationEventLiveData.postValue(post.isSendReplies() ? new PostModerationEvent.SetReceiveNotification(post, position): new PostModerationEvent.UnsetReceiveNotification(post, position));
+                } else {
+                    moderationEventLiveData.postValue(post.isSendReplies() ? new PostModerationEvent.UnsetReceiveNotificationFailed(post, position) : new PostModerationEvent.SetReceiveNotificationFailed(post, position));
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<String> call, @NonNull Throwable throwable) {
+                moderationEventLiveData.postValue(post.isSendReplies() ? new PostModerationEvent.UnsetReceiveNotificationFailed(post, position) : new PostModerationEvent.SetReceiveNotificationFailed(post, position));
+            }
+        });
+    }
 }
